@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="铁线防区 · 现代军事题材俯视塔防">
+  <meta name="theme-color" content="#10191d">
+  <title>铁线防区 · Iron Corridor</title>
+  <link rel="stylesheet" href="style.css">
+  <script defer src="js/data.js"></script>
+  <script defer src="js/engine.js"></script>
+  <script defer src="js/art.js"></script>
+  <script defer src="js/records.js"></script>
+  <script defer src="js/ui.js"></script>
+</head>
+<body>
+  <div class="shell">
+    <header class="mast">
+      <div class="identity">
+        <svg viewBox="0 0 40 40" aria-hidden="true"><path d="M8 10 20 3l12 7v19l-12 8-12-8z" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M13 25 20 12l7 13-7-4z" fill="currentColor"/><path d="M4 20h6m20 0h6M20 1v7m0 24v7" stroke="currentColor"/></svg>
+        <div><strong>IRON CORRIDOR</strong><small>战区指挥终端</small></div>
+      </div>
+      <h1 id="page-title">铁线防区</h1>
+      <div class="mast-actions">
+        <span class="build-tag"><i></i> 演习版 <b>V0.12</b></span>
+        <button type="button" class="quiet test-button" id="test-open" aria-label="测试模式" aria-pressed="false">测试模式</button>
+        <button type="button" class="quiet" id="intel-open" aria-label="装备图鉴">装备图鉴</button>
+        <button type="button" class="icon-button" id="restart" title="重新开始" aria-label="重新开始">↻</button>
+      </div>
+    </header>
+    <main>
+      <div class="workspace">
+        <section class="field panel" id="field" aria-labelledby="field-title">
+          <header class="panel-bar field-bar">
+            <div class="field-name"><span class="reticle">⊕</span><h2 id="field-title">山脊走廊</h2><span class="tech sector">SECTOR 07</span></div>
+            <div class="field-vitals">
+              <div class="field-vital">
+                <span>基地<span class="vital-detail">完整度</span></span><strong id="integrity">20</strong><small>/ 20</small>
+                <div class="health-track" aria-hidden="true"><i id="health-fill"></i></div>
+              </div>
+              <div class="field-vital">
+                <span><span class="vital-detail">敌袭</span>波次</span><strong id="wave">00</strong><small id="wave-total">/ 20</small><span class="mode-tag" id="wave-mode" hidden>无尽</span>
+              </div>
+            </div>
+            <div class="panel-actions"><span id="cell-readout" class="tech cell-readout">27 × 14</span><span id="phase" class="phase"><i></i> 待部署</span><a class="panel-jump" href="#armory">军械库 ↓</a></div>
+          </header>
+          <div class="wavebar">
+            <div class="wave-brief" id="wave-brief"></div>
+            <div class="wave-controls">
+              <button class="quiet" type="button" id="forecast">下波预警</button>
+              <button class="quiet" type="button" id="wave-report" disabled>波后战报</button>
+              <button class="quiet" type="button" id="records-open">战斗记录</button>
+              <button class="quiet strike-button" type="button" id="call-support" aria-pressed="false" disabled>炮火支援</button>
+              <button class="quiet retry-button" type="button" id="test-retry" hidden disabled>重试本波 ↻</button>
+              <div class="speed" aria-label="战斗速度">
+                <button type="button" data-speed="1" aria-pressed="true">1×</button>
+                <button type="button" data-speed="2" aria-pressed="false">2×</button>
+                <button type="button" data-speed="3" aria-pressed="false">3×</button>
+              </div>
+              <button type="button" class="launch" id="launch">开始第 1 波 <span>▶</span></button>
+            </div>
+          </div>
+          <div id="boss-meter" class="boss-meter" aria-label="首领状态" hidden></div>
+          <div class="map-scroll">
+            <div class="map-wrap">
+              <canvas id="ground" class="map-layer" aria-hidden="true"></canvas>
+              <svg id="roadmap" class="map-layer" aria-hidden="true"></svg>
+              <canvas id="battlefield" width="1620" height="840" tabindex="0" aria-label="山脊走廊战场。按方向键移动一格，按回车选择或建造。">此游戏需要支持 Canvas 的浏览器。</canvas>
+              <div class="map-marker map-north" aria-hidden="true"><b>N</b><svg viewBox="0 0 22 25"><path d="M11 2 19 22 11 17 3 22z" fill="none" stroke="currentColor"/><path d="M11 2v15L3 22z" fill="currentColor"/></svg></div>
+            </div>
+          </div>
+          <div class="map-key"><span><i class="key-dot threat"></i> 敌军入口</span><span><i class="key-dot"></i> 防守目标</span><span><i class="key-pad">▦</i> 内部空格可部署</span><span class="map-blocked"><i></i> 道路格仅限工事 · 外圈禁建</span><span class="tech touch-hint">滑动查看战区</span></div>
+        </section>
+        <aside class="details panel" aria-labelledby="details-title">
+          <header class="panel-bar">
+            <div class="field-name"><span class="reticle">⌖</span><h2 id="details-title">阵位详情</h2></div>
+          </header>
+          <div class="inspect" id="inspect"></div>
+        </aside>
+        <section class="armory panel" id="armory" aria-labelledby="armory-title">
+          <header class="panel-bar">
+            <div class="field-name"><span class="reticle">▦</span><h2 id="armory-title">部署军械库</h2></div>
+            <a class="panel-jump" href="#field">返回战场 ↑</a>
+          </header>
+          <div class="armory-shelf">
+            <div class="armory-credit"><span>◈ 可用军费</span><strong id="credits">360</strong><small>CR</small></div>
+            <div class="section-label">可部署装备 <span>每次选取部署一座</span></div>
+            <div id="shop" class="shop"></div>
+            <div class="section-label works-label">道路工事 <span>道路格每格一件</span></div>
+            <div id="work-shop" class="work-shop"></div>
+          </div>
+        </section>
+      </div>
+      <footer class="status-line">
+        <div class="live-status" id="status" role="status"><i></i><span>建议在 H12 放链式机炮并升至 II 级，再在 H11 部署帕拉丁火炮。</span></div>
+        <div class="hotkeys"><kbd>1</kbd>–<kbd>9</kbd> 选装备 <kbd>Space</kbd> 开战 / 暂停 <kbd>右键</kbd> / <kbd>Esc</kbd> 取消</div>
+      </footer>
+    </main>
+  </div>
+  <div id="deploy-feedback" class="deploy-feedback" aria-hidden="true" hidden></div>
+  <dialog id="intel" class="dialog intel">
+    <header class="dialog-header"><div><div class="eyebrow">FIELD MANUAL</div><h2>战场装备图鉴</h2></div><form method="dialog"><button class="icon-button" aria-label="关闭图鉴">×</button></form></header>
+    <div class="intel-body">
+      <p class="manual">选择装备后点击地图内侧空格部署。各路线的 I–IV 级取自现实原型，V 级为近未来虚构装备。</p>
+      <h3>我方装备 <span>07 路线 / 35 型号</span></h3><div id="intel-towers" class="intel-families"></div>
+      <h3>敌军识别 <span>12</span></h3><div id="intel-enemies" class="intel-grid"></div>
+    </div>
+  </dialog>
+  <dialog id="operations" class="dialog intel operations">
+    <header class="dialog-header"><div><div class="eyebrow">OPERATIONS BRIEF</div><h2 id="operations-title"></h2></div><form method="dialog"><button class="icon-button" aria-label="关闭简报">×</button></form></header>
+    <div class="intel-body" id="operations-body"></div>
+  </dialog>
+  <dialog id="records-dialog" class="dialog intel records">
+    <header class="dialog-header"><div><div class="eyebrow">COMBAT LOG</div><h2>战斗记录</h2></div><form method="dialog"><button class="icon-button" aria-label="关闭战斗记录">×</button></form></header>
+    <div class="intel-body">
+      <div class="record-actions"><label>选择记录 <select aria-label="选择战斗记录"></select></label><button type="button" id="records-export" class="quiet">导出全部 JSON</button></div>
+      <p class="ops-note" id="records-storage"></p>
+      <div id="records-body"></div>
+    </div>
+  </dialog>
+  <dialog id="end" class="dialog result">
+    <div class="eyebrow">AFTER ACTION REPORT</div>
+    <h2 id="result-title"></h2>
+    <p id="result-desc"></p>
+    <div id="result-stats" class="result-stats"></div>
+    <p id="endless-note" hidden>带着现有炮塔、军费和基地完整度，从第 21 波继续。</p>
+    <form method="dialog"><button class="quiet">查看战场</button><button type="button" class="quiet" id="test-change-wave" hidden>选择波次</button><button type="button" class="quiet" id="replay">重新部署 ↻</button><button type="button" class="launch" id="endless-start" hidden>开始无尽模式 <span>∞</span></button></form>
+  </dialog>
+  <dialog id="testing" class="dialog result">
+    <div class="eyebrow">TEST RANGE</div>
+    <h2>测试模式</h2>
+    <p>单波演练军费无限。更换波次或切换模式会重新部署。</p>
+    <form id="test-form" class="test-form">
+      <label class="test-row"><span>启用测试模式</span><input id="test-enabled" type="checkbox"></label>
+      <label class="test-row"><span>演练波次</span><select id="test-wave" aria-label="演练波次"></select></label>
+      <label class="test-row"><span>敌军血量倍率</span><span><input id="test-hp" type="number" inputmode="decimal" min="0.25" max="10" step="any" value="1" required> ×</span></label>
+      <p class="test-hint">倍率可填 0.25–10。重试会恢复开波前的布防和基地完整度，并保留当前倍率。</p>
+      <div class="test-actions"><button id="test-cancel" class="quiet" type="button">取消</button><button class="launch" type="submit">应用设置</button></div>
+    </form>
+  </dialog>
+  <dialog id="confirm" class="dialog result">
+    <div class="eyebrow">MISSION RESET</div>
+    <h2>重新开始演习？</h2>
+    <p>当前炮塔、军费和波次进度会重置。</p>
+    <form method="dialog"><button class="quiet" value="cancel" autofocus>继续演习</button><button class="launch" value="restart">重新开始 <span>↻</span></button></form>
+  </dialog>
+</body>
+</html>
